@@ -17,7 +17,8 @@ CREATE TABLE teachings (
     student_id INT NOT NULL, 
     teacher_id INT NOT NULL, 
     FOREIGN KEY (student_id) REFERENCES students(id),
-    FOREIGN KEY (teacher_id) REFERENCES teachers(id)
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id),
+    PRIMARY KEY (student_id, teacher_id)
 ) ENGINE=INNODB;
 
 CREATE TABLE notifications (
