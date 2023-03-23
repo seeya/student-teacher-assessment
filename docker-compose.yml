@@ -1,0 +1,42 @@
+version: "3.1"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-server
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}}"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - 3306:3306
+    networks:
+      - mysql-net
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: ${MYSQL_HOST}
+      PMA_USER: "${MYSQL_USER}"
+      PMA_PASSWORD: "${MYSQL_PASSWORD}}"
+      PMA_ARBITRARY: 1
+    ports:
+      - "${PMA_PORT}:80"
+    networks:
+      - mysql-net
+
+networks:
+  mysql-net:
+    driver: bridge
+
+volumes:
+  mysql-data:
