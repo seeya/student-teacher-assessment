@@ -29,11 +29,15 @@ func main() {
 		[]string{"studentjon@gmail.com",
 			"studentagnes@gmail.com", "studenthon@gmail.com"})
 
-	ApiQuery.FindCommonStudents([]string{"teacherjoe@gmail.com", "teacherken@gmail.com"})
+	common, err := ApiQuery.FindCommonStudents([]string{"teacherjoe@gmail.com", "teacherken@gmail.com"})
+
+	ApiQuery.SuspendStudent("studentmiche@gmail.com")
 
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Printf("Common Students: %v", common)
 
 	log.Println("Hello world")
 }

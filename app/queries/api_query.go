@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/seeya/student-teacher-assessment/app/models"
@@ -19,73 +20,69 @@ func (q *ApiQuery) GetTeachers() ([]string, error) {
 	return teachers, err
 }
 
-func (q *ApiQuery) FindCommonStudents(teacherEmails []string) error {
+func (q *ApiQuery) FindCommonStudents(teacherEmails []string) ([]string, error) {
 	// Find all IDs of teachers
 	var teacherIDs []string
 	for _, email := range teacherEmails {
 		t, err := q.FindTeacherIDByEmail(email)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		teacherIDs = append(teacherIDs, strconv.Itoa(int(t.ID)))
 	}
 
-	// TODO: Test out this query
-	query := `SELECT student_id, COUNT(*) as occurrences
+	// 1. Select all rows where the teacher_id is in the list of teacherIDs
+	// 2. Group by student_id and count the total occurance
+	// 3. Compare the total occurance to the number of teacherIDs we input using HAVING
+	// 4. Left join to get the email of the student
+	query := `SELECT student_id, COUNT(*) as occurrences, email
 				FROM teachings
+				LEFT JOIN students ON teachings.student_id = students.id
+				WHERE teacher_id IN (` + strings.TrimSuffix(strings.Repeat("?,", len(teacherIDs)), ",") + `)
 				GROUP BY student_id
 				HAVING occurrences = ?;`
 
+	stmt, err := q.DB.Preparex(query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	args := make([]interface{}, len(teacherIDs)+1)
+	for i, id := range teacherIDs {
+		args[i] = id
+	}
+	args[len(args)-1] = len(teacherEmails)
+
+	log.Printf("Total Teachers Length: %v", len(teacherEmails))
+	rows, err := stmt.Queryx(args...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var students []string
+
+	for rows.Next() {
+		var studentID int
+		var count int
+		var email string
+		err := rows.Scan(&studentID, &count, &email)
+
+		if err != nil {
+			return nil, err
+		}
+
+		students = append(students, email)
+
+		log.Printf("Common Student: %v, %v, %v", studentID, count, email)
+	}
+
 	log.Printf("Teacher IDs: %v", teacherIDs)
-	return nil
+	return students, nil
 }
-
-// func (q *ApiQuery) FindCommonStudents(teacherEmails []string) error {
-// 	// Find all IDs of teachers
-// 	query := `SELECT id FROM teachers
-//     			WHERE email IN (` + strings.TrimSuffix(strings.Repeat("?,", len(teacherEmails)), ",") + `)`
-
-// 	stmt, err := q.DB.Preparex(query)
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	defer stmt.Close()
-
-// 	args := make([]interface{}, len(teacherEmails))
-
-// 	for i, email := range teacherEmails {
-// 		args[i] = email
-// 	}
-
-// 	rows, err := stmt.Queryx(args...)
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	defer rows.Close()
-
-// 	var teacherIDs []string
-
-// 	for rows.Next() {
-// 		var teacherID int
-// 		err := rows.Scan(&teacherID)
-
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		teacherIDs = append(teacherIDs, strconv.Itoa(teacherID))
-// 	}
-
-// 	log.Printf("Teacher IDs: %v", teacherIDs)
-
-// 	return err
-// }
 
 func (q *ApiQuery) TeacherAddStudent(teacherEmail string, studentsEmail []string) error {
 	s := `INSERT INTO teachings (student_id, teacher_id) VALUES (?, ?)`
@@ -112,6 +109,31 @@ func (q *ApiQuery) TeacherAddStudent(teacherEmail string, studentsEmail []string
 		log.Printf("Student: %v", student)
 	}
 
+	return nil
+}
+
+func (q *ApiQuery) SuspendStudent(email string) error {
+	s := `UPDATE students SET is_suspended = true WHERE email = ?`
+
+	stmt, err := q.DB.Preparex(s)
+
+	if err != nil {
+		return err
+	}
+
+	result, err := stmt.Exec(email)
+
+	if err != nil {
+		return err
+	}
+
+	affected, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Result: %v", affected)
 	return nil
 }
 
