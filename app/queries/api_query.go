@@ -3,11 +3,13 @@ package queries
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/seeya/student-teacher-assessment/app/models"
+	"golang.org/x/exp/maps"
 )
 
 type ApiQuery struct {
@@ -166,6 +168,48 @@ func (q *ApiQuery) FindStudentIDByEmail(email string) (*models.Student, error) {
 
 	return &student, err
 
+}
+
+func (q *ApiQuery) StudentCanReceiveNotifications(teacherEmail string, notification string) ([]string, error) {
+	teacher, err := q.FindTeacherIDByEmail(teacherEmail)
+
+	if err != nil {
+		return nil, err
+	}
+
+	s := `SELECT email FROM teachings 
+			LEFT JOIN students ON students.id = student_id 
+			WHERE teacher_id = ? 
+			AND students.is_suspended = FALSE;`
+
+	rows, err := q.DB.Queryx(s, teacher.ID)
+
+	if err != nil {
+		return nil, nil
+	}
+
+	var students = map[string]int{}
+
+	var email string
+	for rows.Next() {
+		_ = rows.Scan(&email)
+
+		students[email] = 1
+	}
+
+	// Parse the notification for @email
+	pattern := "@[\\d\\w]{1,}@[\\d\\w]{1,}.[\\d\\w]{1,}"
+	re := regexp.MustCompile(pattern)
+	emails := re.FindAllString(notification, -1)
+	log.Printf("Match: %v", emails)
+
+	// Add the emails found into our dictionary to remove duplicates
+	for _, email := range emails {
+		// Remove the first @ at the front
+		students[email[1:]] = 1
+	}
+
+	return maps.Keys(students), nil
 }
 
 func (q *ApiQuery) SeedTeachers() error {

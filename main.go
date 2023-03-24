@@ -30,14 +30,18 @@ func main() {
 			"studentagnes@gmail.com", "studenthon@gmail.com"})
 
 	common, err := ApiQuery.FindCommonStudents([]string{"teacherjoe@gmail.com", "teacherken@gmail.com"})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Common Students: %v", common)
 
 	ApiQuery.SuspendStudent("studentmiche@gmail.com")
-
+	students, err := ApiQuery.StudentCanReceiveNotifications("teacherhc@gmail.com", "Hello students! @studentagnes@gmail.com @studentmiche@gmail.com @hehe@gmail.com")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("Common Students: %v", common)
+	log.Printf("Students: %v", students)
 
 	log.Println("Hello world")
 }

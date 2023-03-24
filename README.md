@@ -25,3 +25,9 @@ docker-compose up -d
 ```
 
 Access phpMyAdmin at `http://localhost:<PMA_PORT>`.
+
+# New Branch
+
+git push --set-upstream origin database
+git checkout -b database
+git push origin master:database
