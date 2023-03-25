@@ -9,11 +9,11 @@ app.run:
 migrate.up:
 	docker run -v "${PWD}/platform/migrations":/migrations --network host migrate/migrate \
 		-path=/migrations/ \
-		-database "mysql://root:${MYSQL_ROOT_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}" \
+		-database "mysql://${MYSQL_USER}:${MYSQL_ROOT_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}" \
 		up
 
 migrate.down:
 	docker run -v "${PWD}/platform/migrations":/migrations --network host migrate/migrate \
 		-path=/migrations/ \
-		-database "mysql://root:${MYSQL_ROOT_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}" \
+		-database "mysql://${MYSQL_USER}:${MYSQL_ROOT_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/${MYSQL_DATABASE}" \
 		down -all	

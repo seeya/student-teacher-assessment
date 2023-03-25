@@ -1,9 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
+	"github.com/seeya/student-teacher-assessment/app/controllers"
 	"github.com/seeya/student-teacher-assessment/app/queries"
 	"github.com/seeya/student-teacher-assessment/platform/database"
 )
@@ -17,31 +21,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	ApiQuery := queries.ApiQuery{DB: db}
+	ApiQuery := &queries.ApiQuery{DB: db}
+
 	ApiQuery.SeedTeachers()
 	ApiQuery.SeedStudents()
 
-	_ = ApiQuery.TeacherAddStudent("teacherken@gmail.com",
-		[]string{"studentjon@gmail.com",
-			"studentbob@gmail.com", "studentmiche@gmail.com"})
+	app := fiber.New()
+	api := app.Group("/api")
 
-	_ = ApiQuery.TeacherAddStudent("teacherjoe@gmail.com",
-		[]string{"studentjon@gmail.com",
-			"studentagnes@gmail.com", "studenthon@gmail.com"})
+	// Dependency Injection
+	controllers.InitApiRoutes(api, ApiQuery)
 
-	common, err := ApiQuery.FindCommonStudents([]string{"teacherjoe@gmail.com", "teacherken@gmail.com"})
+	err = app.Listen(fmt.Sprintf(":%s", os.Getenv("API_PORT")))
+
 	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("Common Students: %v", common)
-
-	ApiQuery.SuspendStudent("studentmiche@gmail.com")
-	students, err := ApiQuery.StudentCanReceiveNotifications("teacherhc@gmail.com", "Hello students! @studentagnes@gmail.com @studentmiche@gmail.com @hehe@gmail.com")
-	if err != nil {
-		log.Fatal(err)
+		log.Printf("Failed to listen on port %s", os.Getenv("API_PORT"))
 	}
 
-	log.Printf("Students: %v", students)
-
-	log.Println("Hello world")
 }
