@@ -1,5 +1,7 @@
 # Introduction
 
+https://gist.github.com/d3hiring/4d1415d445033d316c36a56f0953f4ef
+
 ## 1. Folder structure
 
 ```bash
@@ -34,9 +36,11 @@
 Clone the project and enter into the root directory
 
 ```
+# Clone
 git clone git@github.com:seeya/student-teacher-assessment.git
-cd student-teacher-assessment
 
+# Enter directory
+cd student-teacher-assessment
 ```
 
 Create an `.env` file with the following keys field saving it in the root directory.
@@ -57,6 +61,7 @@ API_PORT=3001" > .env
 Run the following command to spin up the containers.
 
 ```bash
+# Keep the container running in the background
 docker-compose up -d
 ```
 
@@ -83,5 +88,6 @@ make seed
 A `Makefile` is included to simplify running repetitive commands.
 
 ```bash
+# Clean the test cache, use 1 processor and run all tests
 make test
 ```
