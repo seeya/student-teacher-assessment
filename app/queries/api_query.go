@@ -29,7 +29,7 @@ func (q *ApiQuery) FindCommonStudents(teacherEmails []string) ([]string, error) 
 		t, err := q.FindTeacherIDByEmail(email)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("teacher not found")
 		}
 
 		teacherIDs = append(teacherIDs, strconv.Itoa(int(t.ID)))
@@ -73,7 +73,7 @@ func (q *ApiQuery) FindCommonStudents(teacherEmails []string) ([]string, error) 
 		err := rows.Scan(&studentID, &count, &email)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to scan student row")
 		}
 
 		students = append(students, email)
@@ -182,7 +182,7 @@ func (q *ApiQuery) StudentCanReceiveNotifications(teacherEmail string, notificat
 	rows, err := q.DB.Queryx(s, teacher.ID)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed finding students who can receive notifications")
 	}
 
 	var students = map[string]int{}
@@ -194,13 +194,10 @@ func (q *ApiQuery) StudentCanReceiveNotifications(teacherEmail string, notificat
 		students[email] = 1
 	}
 
-	log.Printf("All the Students: %v", students)
-
 	// Parse the notification for @email
 	pattern := "@[\\d\\w]{1,}@[\\d\\w]{1,}.[\\d\\w]{1,}"
 	re := regexp.MustCompile(pattern)
 	emails := re.FindAllString(notification, -1)
-	log.Printf("Match: %v", emails)
 
 	// Add the emails found into our dictionary to remove duplicates
 	for _, email := range emails {
@@ -220,8 +217,7 @@ func (q *ApiQuery) SeedTeachers() error {
 		_, err := q.DB.Exec(s, fmt.Sprintf("teacher%s@gmail.com", name))
 
 		if err != nil {
-			log.Printf("Failed to seed Teachers table: %v\n", err)
-			return err
+			return fmt.Errorf("failed to seed teachers table")
 		}
 
 		log.Printf("Seeded Teachers table")
@@ -239,8 +235,7 @@ func (q *ApiQuery) SeedStudents() error {
 		_, err := q.DB.Exec(s, fmt.Sprintf("student%s@gmail.com", name))
 
 		if err != nil {
-			log.Printf("Failed to seed Students table: %v\n", err)
-			return err
+			return fmt.Errorf("failed to seed students table")
 		}
 
 		log.Printf("Seeded Students table")
@@ -250,13 +245,19 @@ func (q *ApiQuery) SeedStudents() error {
 }
 
 func (q *ApiQuery) SeedTeacherStudentRelationship() error {
-	q.TeacherAddStudent("teacherken@gmail.com",
+	err := q.TeacherAddStudent("teacherken@gmail.com",
 		[]string{"studentagnes@gmail.com", "studentbob@gmail.com", "studentmiche@gmail.com"})
 
-	q.TeacherAddStudent("teacherjoe@gmail.com",
+	if err != nil {
+		return fmt.Errorf("failed to seed teacherken with students")
+	}
+
+	err = q.TeacherAddStudent("teacherjoe@gmail.com",
 		[]string{"studentagnes@gmail.com", "studentbob@gmail.com", "studenthon@gmail.com"})
 
-	log.Printf("Seeded Teacher Student Relationship")
+	if err != nil {
+		return fmt.Errorf("failed to seed teacherjoe with students")
+	}
 
 	return nil
 }

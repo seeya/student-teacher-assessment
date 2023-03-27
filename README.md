@@ -29,20 +29,30 @@
 
 # Setup Instructions for Development
 
-## 1. MySQL and phpMyAdmin
+## 0. Clone Project
+
+Clone the project and enter into the root directory
+
+```
+git clone git@github.com:seeya/student-teacher-assessment.git
+cd student-teacher-assessment
+
+```
 
 Create an `.env` file with the following keys field saving it in the root directory.
 
 ```yaml
-MYSQL_ROOT_PASSWORD=CX98JU!M939f0tdaoAZjKwBrjnZKQRs
+echo "MYSQL_ROOT_PASSWORD=CX98JU!M939f0tdaoAZjKwBrjnZKQRs
 MYSQL_DATABASE=school
 MYSQL_USER=admin
 MYSQL_PASSWORD=6dE66teSrc0thlfBmr
 MYSQL_HOST=127.0.0.1
 MYSQL_PORT=3306
 PMA_PORT=8081
-API_PORT=3001
+API_PORT=3001" > .env
 ```
+
+## 1. MySQL and phpMyAdmin
 
 Run the following command to spin up the containers.
 
