@@ -25,20 +25,33 @@ type RetrieveForNotificationsRequest struct {
 	Notification string `json:"notification"`
 }
 
+func errorMiddleware(c *fiber.Ctx, err error) error {
+	return c.Status(500).JSON(fiber.Map{
+		"message": err.Error(),
+	})
+
+}
+
 func InitApiRoutes(router fiber.Router, api *queries.ApiQuery) {
+	router.Get("/seed", func(c *fiber.Ctx) error {
+		api.SeedTeachers()
+		api.SeedStudents()
+		api.SeedTeacherStudentRelationship()
+
+		return c.SendString("Seeded")
+	})
 
 	router.Get("/commonstudents", func(c *fiber.Ctx) error {
 		req := new(CommonStudentRequest)
 
 		if err := c.QueryParser(req); err != nil {
-			return err
+			return errorMiddleware(c, err)
 		}
 
-		log.Printf("Request: %v", req.Teachers)
 		students, err := api.FindCommonStudents(req.Teachers)
 
 		if err != nil {
-			return err
+			return errorMiddleware(c, err)
 		}
 
 		return c.JSON(students)
@@ -48,13 +61,13 @@ func InitApiRoutes(router fiber.Router, api *queries.ApiQuery) {
 		req := new(RetrieveForNotificationsRequest)
 
 		if err := c.BodyParser(req); err != nil {
-			return err
+			return errorMiddleware(c, err)
 		}
 
 		students, err := api.StudentCanReceiveNotifications(req.Teacher, req.Notification)
 
 		if err != nil {
-			return err
+			return errorMiddleware(c, err)
 		}
 
 		return c.JSON(students)
@@ -64,7 +77,8 @@ func InitApiRoutes(router fiber.Router, api *queries.ApiQuery) {
 		req := new(RegisterStudentRequest)
 
 		if err := c.BodyParser(req); err != nil {
-			return err
+			return errorMiddleware(c, err)
+
 		}
 
 		log.Printf("Request: %v", req)
@@ -76,13 +90,13 @@ func InitApiRoutes(router fiber.Router, api *queries.ApiQuery) {
 		req := new(SuspendStudentRequest)
 
 		if err := c.BodyParser(req); err != nil {
-			return err
+			return errorMiddleware(c, err)
 		}
 
 		err := api.SuspendStudent(req.Student)
 
 		if err != nil {
-			return err
+			return errorMiddleware(c, err)
 		}
 
 		return c.SendStatus(fiber.StatusNoContent)

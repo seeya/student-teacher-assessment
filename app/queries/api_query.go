@@ -58,7 +58,6 @@ func (q *ApiQuery) FindCommonStudents(teacherEmails []string) ([]string, error) 
 	}
 	args[len(args)-1] = len(teacherEmails)
 
-	log.Printf("Total Teachers Length: %v", len(teacherEmails))
 	rows, err := stmt.Queryx(args...)
 
 	if err != nil {
@@ -79,10 +78,8 @@ func (q *ApiQuery) FindCommonStudents(teacherEmails []string) ([]string, error) 
 
 		students = append(students, email)
 
-		log.Printf("Common Student: %v, %v, %v", studentID, count, email)
 	}
 
-	log.Printf("Teacher IDs: %v", teacherIDs)
 	return students, nil
 }
 
@@ -174,7 +171,7 @@ func (q *ApiQuery) StudentCanReceiveNotifications(teacherEmail string, notificat
 	teacher, err := q.FindTeacherIDByEmail(teacherEmail)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("teacher not found")
 	}
 
 	s := `SELECT email FROM teachings 
@@ -185,7 +182,7 @@ func (q *ApiQuery) StudentCanReceiveNotifications(teacherEmail string, notificat
 	rows, err := q.DB.Queryx(s, teacher.ID)
 
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	var students = map[string]int{}
@@ -196,6 +193,8 @@ func (q *ApiQuery) StudentCanReceiveNotifications(teacherEmail string, notificat
 
 		students[email] = 1
 	}
+
+	log.Printf("All the Students: %v", students)
 
 	// Parse the notification for @email
 	pattern := "@[\\d\\w]{1,}@[\\d\\w]{1,}.[\\d\\w]{1,}"
@@ -246,6 +245,18 @@ func (q *ApiQuery) SeedStudents() error {
 
 		log.Printf("Seeded Students table")
 	}
+
+	return nil
+}
+
+func (q *ApiQuery) SeedTeacherStudentRelationship() error {
+	q.TeacherAddStudent("teacherken@gmail.com",
+		[]string{"studentagnes@gmail.com", "studentbob@gmail.com", "studentmiche@gmail.com"})
+
+	q.TeacherAddStudent("teacherjoe@gmail.com",
+		[]string{"studentagnes@gmail.com", "studentbob@gmail.com", "studenthon@gmail.com"})
+
+	log.Printf("Seeded Teacher Student Relationship")
 
 	return nil
 }

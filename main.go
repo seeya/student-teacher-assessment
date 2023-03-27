@@ -23,9 +23,6 @@ func main() {
 
 	ApiQuery := &queries.ApiQuery{DB: db}
 
-	ApiQuery.SeedTeachers()
-	ApiQuery.SeedStudents()
-
 	app := fiber.New()
 	api := app.Group("/api")
 

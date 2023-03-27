@@ -1,0 +1,5 @@
+CREATE DATABASE test; 
+
+GRANT ALL PRIVILEGES ON test.* TO 'admin'@'%';
+GRANT ALL PRIVILEGES ON school.* TO 'admin'@'%';
+FLUSH PRIVILEGES;
