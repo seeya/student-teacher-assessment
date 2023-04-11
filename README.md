@@ -35,7 +35,7 @@ https://gist.github.com/d3hiring/4d1415d445033d316c36a56f0953f4ef
 
 Clone the project and enter into the root directory
 
-```
+```bash
 # Clone
 git clone git@github.com:seeya/student-teacher-assessment.git
 

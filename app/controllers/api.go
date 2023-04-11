@@ -9,11 +9,11 @@ import (
 
 type RegisterStudentRequest struct {
 	Email   string   `json:"email"`
-	Student []string `json:"student[]"`
+	Student []string `json:"student"`
 }
 
 type CommonStudentRequest struct {
-	Teachers []string `query:"teacher"`
+	Teachers []string `query:"teacher,required"`
 }
 
 type SuspendStudentRequest struct {
@@ -48,6 +48,8 @@ func InitApiRoutes(router fiber.Router, api *queries.ApiQuery) {
 			return errorMiddleware(c, err)
 		}
 
+		log.Println(req)
+
 		students, err := api.FindCommonStudents(req.Teachers)
 
 		if err != nil {
@@ -76,12 +78,21 @@ func InitApiRoutes(router fiber.Router, api *queries.ApiQuery) {
 	router.Post("/register", func(c *fiber.Ctx) error {
 		req := new(RegisterStudentRequest)
 
+		// json.Unmarshal([]byte(c.Body()), &req)
+
+		// TODO: Why cannot parse properly.
 		if err := c.BodyParser(req); err != nil {
 			return errorMiddleware(c, err)
 
 		}
 
 		log.Printf("Request: %v", req)
+
+		err := api.TeacherAddStudent(req.Email, req.Student)
+
+		if err != nil {
+			return errorMiddleware(c, err)
+		}
 
 		return c.SendStatus(fiber.StatusNoContent)
 	})

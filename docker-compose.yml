@@ -45,6 +45,14 @@ services:
       options:
         max-size: "50m"
 
+  # app:
+  #   build: .
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "3001:3001"
+  #   networks:
+  #     - mysql-net
 networks:
   mysql-net:
 
